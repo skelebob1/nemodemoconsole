@@ -144,7 +144,7 @@
   const t0Wall = Date.now();
   const clock = { t: 0, playing: Ops.store.get("ct.playing", true), rate: Ops.store.get("ct.rate", 5) };
   const show = { trails: Ops.store.get("ct.trails", true), leaders: Ops.store.get("ct.leaders", true), labels: Ops.store.get("ct.labels", true) };
-  let selected = null, follow = false, layer = null;
+  let selected = null, follow = false, layer = null, syncPlayHub = () => {};
   const selectHooks = [];
   const pics = new Map(); // id -> picture, refreshed with the clock
 
@@ -298,6 +298,7 @@
         play.setAttribute("aria-label", clock.playing ? "Pause the contact picture" : "Play the contact picture");
       };
       syncPlay();
+      syncPlayHub = syncPlay;
       play.addEventListener("click", () => { clock.playing = !clock.playing; Ops.store.set("ct.playing", clock.playing); syncPlay(); });
       el.querySelectorAll("[data-rate]").forEach((b) => b.addEventListener("click", () => {
         clock.rate = Number(b.dataset.rate); Ops.store.set("ct.rate", clock.rate);
@@ -393,6 +394,15 @@
     selected: () => selected,
     onSelect: (fn) => selectHooks.push(fn),
     stateAt, sensorsAt,
+    // For the map transport (transport.js). Positions are a pure function of
+    // t, so seeking backwards is safe.
+    clock: {
+      get t() { return clock.t; },
+      get rate() { return clock.rate; },
+      get playing() { return clock.playing; },
+      seek(t) { clock.t = Math.max(0, t); refresh(); paintHub(); Ops.map.redraw(); },
+      play(on) { clock.playing = on; Ops.store.set("ct.playing", on); syncPlayHub(); },
+    },
   };
 
   // The picture clock runs while the layer is on. The map redraws every frame

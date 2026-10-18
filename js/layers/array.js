@@ -368,6 +368,25 @@
   };
   Ops.register(layer);
 
+  // For the map transport (transport.js): the same play, pause and seek as the
+  // hub controls.
+  Ops.array = {
+    ready: () => !!scenario,
+    get t() { return app.t; },
+    get duration() { return scenario ? scenario.duration : 0; },
+    get playing() { return app.playing; },
+    chapter: () => (scenario ? chapter(app.t) : null),
+    fmt,
+    seek,
+    play(on) {
+      if (!scenario) return;
+      app.playing = on;
+      if (on && app.t >= scenario.duration - 0.05) seek(0);
+      if (on && !app.flew) showArray();
+      paint();
+    },
+  };
+
   function arm() {
     const ch = $("#array-ch");
     if (!ch || ch.childElementCount) return;
