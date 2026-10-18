@@ -5,8 +5,12 @@
   position: absolute; left: 0; top: 0; z-index: 30; width: 260px;
   background: rgba(10, 16, 22, 0.96); border: 1px solid #2a3a4a; border-radius: 3px;
   padding: 10px 12px 12px; color: #dbe5ee; font-size: 12px; line-height: 1.35;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); pointer-events: auto;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  /* The card body lets clicks through to the map, so a ship underneath it can
+     still be clicked; only the buttons catch the pointer. */
+  pointer-events: none;
 }
+.ic-card button { pointer-events: auto; }
 .ic-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .ic-head strong { font-size: 13px; font-weight: 700; }
 .ic-x { background: none; border: 0; color: #93a5b5; font-size: 18px; line-height: 1; padding: 0 2px; cursor: pointer; }

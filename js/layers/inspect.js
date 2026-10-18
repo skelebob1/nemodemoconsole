@@ -40,7 +40,7 @@
     if (!c.ais) flag = `<span class="ic-flag warn">No AIS</span>`;
     if (r && r.aisMatch === false) flag = `<span class="ic-flag bad">AIS mismatch</span>`;
     if (lost) flag = `<span class="ic-flag">Lost ${Math.round(p.ago / 60) || "<1"} min</span>`;
-    card.innerHTML = `
+    const html = `
       <div class="ic-head">
         <strong>${esc(title(c))}</strong>
         <button type="button" class="ic-x" aria-label="Close">×</button>
@@ -56,6 +56,9 @@
         <button type="button" data-ic="centre">Centre</button>
         <button type="button" data-ic="details">Full details</button>
       </div>`;
+    // Rebuild only when something changed, so a click is never lost to a refresh.
+    if (html === card._html) return;
+    card._html = html; card.innerHTML = html;
     card.querySelector(".ic-x").addEventListener("click", () => P.select(null));
     card.querySelector('[data-ic="centre"]').addEventListener("click", () => Ops.map.flyTo(s.lat, s.lon, Math.max(Ops.map.state.zoom, 15)));
     card.querySelector('[data-ic="details"]').addEventListener("click", () => showDetails());
@@ -116,7 +119,9 @@
     canvas.addEventListener("pointermove", hover);
     canvas.addEventListener("pointerleave", () => { tip.hidden = true; hoverId = null; });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && Ops.contacts.selected()) Ops.contacts.select(null); });
-    Ops.contacts.onSelect(() => { shownFor = null; });
+    // Update at once on selection rather than on the next frame, which a
+    // background tab can delay by seconds.
+    Ops.contacts.onSelect(() => { shownFor = null; setTimeout(place, 0); });
     (function loop() { place(); requestAnimationFrame(loop); })();
   }
   // After core.js has built the map (it starts on DOMContentLoaded too).
