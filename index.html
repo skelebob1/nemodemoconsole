@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nemo Ops</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Interface demo. All data shown is simulated; the backend lives in another repository. -->
+
+<aside class="hub" aria-label="Hub">
+  <header class="hub-head">
+    <div class="brand"><span class="wordmark">NEMO</span><span class="product">OPS</span></div>
+    <p class="where">Port of Los Angeles and Long Beach</p>
+    <span class="sim">Simulated data</span>
+  </header>
+
+  <section class="hub-sec">
+    <h2>Layers</h2>
+    <div id="layer-list" class="layer-list"></div>
+  </section>
+
+  <div id="hub-sections"></div>
+</aside>
+
+<main class="mapwrap">
+  <div id="map" class="map" aria-label="Harbour map. Drag to pan, scroll to zoom, arrow keys to move."></div>
+
+  <div class="mapctl" role="group" aria-label="Map controls">
+    <button id="zoom-in" aria-label="Zoom in">+</button>
+    <button id="zoom-out" aria-label="Zoom out">−</button>
+    <button id="fit" aria-label="Fit the whole port">Fit</button>
+  </div>
+
+  <div class="no-tiles" id="no-tiles" hidden>
+    <strong>Map tiles not downloaded yet</strong>
+    <span>Run <code>py tools/fetch_tiles.py --go</code> once to save them for offline use.</span>
+  </div>
+
+  <div class="readout">
+    <div class="scale"><span id="scale-bar" class="bar"></span><span id="scale-label"></span></div>
+    <span id="zoom-level"></span>
+    <span id="cursor" class="mono"></span>
+  </div>
+  <p class="credit" id="credit"></p>
+</main>
+
+<script src="js/map.js"></script>
+<script src="js/core.js"></script>
+<script src="js/layers/basemap.js"></script>
+<script src="data/enc.js"></script>
+<script src="js/layers/chartkey.js"></script>
+<script src="js/layers/equipment.js"></script>
+<script src="js/layers/contacts.js"></script>
+<script src="js/layers/array.js"></script>
+<script src="js/layers/classes.js"></script>
+</body>
+</html>

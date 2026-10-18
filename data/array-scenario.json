@@ -1,0 +1,293 @@
+{
+  "id": "isotropic_2D",
+  "title": "wind \u00b7 propeller",
+  "place": "Circular array \u00b7 16 microphones \u00b7 passive",
+  "sourceDir": "output/isotropic_2D",
+  "resultsFile": "results_2d.json",
+  "duration": 100.0,
+  "decisionAt": 82.0,
+  "watchStart": [
+    14,
+    32,
+    0
+  ],
+  "chapters": [
+    {
+      "n": 1,
+      "t": 0,
+      "title": "Quiet array"
+    },
+    {
+      "n": 2,
+      "t": 18.0,
+      "title": "Detection"
+    },
+    {
+      "n": 3,
+      "t": 36.0,
+      "title": "Bearing lock"
+    },
+    {
+      "n": 4,
+      "t": 54.0,
+      "title": "Track"
+    },
+    {
+      "n": 5,
+      "t": 82.0,
+      "title": "Decide"
+    }
+  ],
+  "array": {
+    "radius": 2.0,
+    "sectorM": 20,
+    "mics": [
+      [
+        2.0,
+        0.0
+      ],
+      [
+        1.8477590650225735,
+        0.7653668647301796
+      ],
+      [
+        1.4142135623730951,
+        1.414213562373095
+      ],
+      [
+        0.7653668647301797,
+        1.8477590650225735
+      ],
+      [
+        1.2246467991473532e-16,
+        2.0
+      ],
+      [
+        -0.7653668647301795,
+        1.8477590650225735
+      ],
+      [
+        -1.414213562373095,
+        1.4142135623730951
+      ],
+      [
+        -1.8477590650225735,
+        0.7653668647301798
+      ],
+      [
+        -2.0,
+        2.4492935982947064e-16
+      ],
+      [
+        -1.8477590650225737,
+        -0.7653668647301793
+      ],
+      [
+        -1.4142135623730954,
+        -1.414213562373095
+      ],
+      [
+        -0.7653668647301807,
+        -1.847759065022573
+      ],
+      [
+        -3.6739403974420594e-16,
+        -2.0
+      ],
+      [
+        0.76536686473018,
+        -1.8477590650225733
+      ],
+      [
+        1.4142135623730947,
+        -1.4142135623730954
+      ],
+      [
+        1.847759065022573,
+        -0.7653668647301808
+      ]
+    ]
+  },
+  "contact": {
+    "id": "TRK-01",
+    "keys": [
+      [
+        0.0,
+        -45.0,
+        12.0
+      ],
+      [
+        45.0,
+        -15.75,
+        4.8
+      ],
+      [
+        75.0,
+        0.0,
+        0.0
+      ],
+      [
+        100.0,
+        15.75,
+        -6.0
+      ]
+    ],
+    "firstHeard": 18.0,
+    "bearingLock": 36.0,
+    "rangeFrom": 42.0,
+    "trackFrom": 54.0,
+    "classFrom": 68.0,
+    "dropout": [
+      48.0,
+      48.5
+    ]
+  },
+  "classes": [
+    "quadcopter",
+    "hexacopter",
+    "fixed wing",
+    "bird",
+    "ground vehicle",
+    "unknown"
+  ],
+  "summary": {
+    "dimensions": "2-D",
+    "domain": "wind",
+    "signal": "propeller",
+    "sourceType": "moving",
+    "array": "circular",
+    "nReceivers": 16,
+    "simSeconds": 3.0,
+    "nDetections": 29,
+    "nWindows": 30,
+    "detectionRate": 0.9666666666666667,
+    "meanBearingErrorDeg": 0.0,
+    "meanLatencyUs": 3276.230767126738,
+    "realtimeMarginX": 7.635893817232806,
+    "meanClassConfidence": 0.19324907814634257,
+    "classThreshold": 0.95,
+    "freqLo": 100.0,
+    "freqHi": 2000.0,
+    "nBearings": 360,
+    "windowS": 0.1,
+    "soundSpeed": 343.0
+  },
+  "modes": {
+    "site": {
+      "label": "Site",
+      "role": "Site security watch officer",
+      "offChart": "Time-stretched replay of a published simulation. The array stays passive.",
+      "narration": [
+        [
+          0,
+          "The array is quiet. Passive microphones only, wind domain, propeller source in the published run. Wind across the array is about 5 m/s."
+        ],
+        [
+          12,
+          "Nothing has crossed the RMS gate. What the array hears is wind and sensor noise."
+        ],
+        [
+          18,
+          "Level crosses the gate on the western side. No scheduled flight accounts for it."
+        ],
+        [
+          36,
+          "SRP-PHAT locks a bearing. On the published run the mean bearing error is 0.0\u00b0."
+        ],
+        [
+          54,
+          "The track is confirmed. This run detected 97% of its windows."
+        ],
+        [
+          68,
+          "The classifier leads with a small craft, confidence 0.19. That is under the reject threshold, so the contact stays on the picture."
+        ],
+        [
+          82,
+          "The contact is inside the array sector and still unexplained. The console proposes. Only the officer chooses."
+        ]
+      ],
+      "decisions": [
+        {
+          "key": "hold",
+          "label": "Hold the western approach",
+          "note": "Stop movement on the bearing until the contact is identified"
+        },
+        {
+          "key": "notify",
+          "label": "Notify site security",
+          "note": "Page the site lead with the bearing, range and track"
+        },
+        {
+          "key": "known",
+          "label": "Log as an authorized flight",
+          "note": "Keeps the track, marks it explained, and stores the label"
+        },
+        {
+          "key": "monitor",
+          "label": "Keep monitoring",
+          "note": "Stays at tier 4 and asks again in 2 min"
+        }
+      ],
+      "closing": "The officer's decision labels this track. The array never transmits."
+    },
+    "range": {
+      "label": "Range",
+      "role": "Range safety watch officer",
+      "offChart": "Replay only. No engagement is computed or cued from this screen.",
+      "narration": [
+        [
+          0,
+          "Routine acoustic picture. wind domain, propeller source, passive array. Wind across the array is about 5 m/s."
+        ],
+        [
+          12,
+          "RMS gate closed. Ambient wind noise only."
+        ],
+        [
+          18,
+          "Unscheduled contact, western arc. The gate is open."
+        ],
+        [
+          36,
+          "Bearing locked by SRP-PHAT. Published mean error 0.0\u00b0."
+        ],
+        [
+          54,
+          "Track confirmed. Detection rate on this run 97%."
+        ],
+        [
+          68,
+          "Classification confidence 0.19, below the threshold that would drop a non-drone. Contact retained."
+        ],
+        [
+          82,
+          "Inside the array sector, unexplained. The console recommends. The officer decides."
+        ]
+      ],
+      "decisions": [
+        {
+          "key": "hold",
+          "label": "Hold movement in the array sector",
+          "note": "Keep people and vehicles out of the sector"
+        },
+        {
+          "key": "cue",
+          "label": "Cue a response team to the bearing",
+          "note": "Send a team to look, using the passive fix"
+        },
+        {
+          "key": "known",
+          "label": "Log as an authorized flight",
+          "note": "Keeps the track, marks it explained, and stores the label"
+        },
+        {
+          "key": "monitor",
+          "label": "Keep monitoring",
+          "note": "Stays at tier 4 and asks again in 2 min"
+        }
+      ],
+      "closing": "The officer's decision labels this track. The system takes no action on its own."
+    }
+  }
+}

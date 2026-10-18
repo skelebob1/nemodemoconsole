@@ -1,0 +1,29 @@
+{
+  "box": [
+    -118.32,
+    33.68,
+    -118.12,
+    33.8
+  ],
+  "detail_box": [
+    -118.29,
+    33.7,
+    -118.24,
+    33.77
+  ],
+  "zooms": [
+    11,
+    17
+  ],
+  "sources": {
+    "sat": {
+      "ext": "jpg",
+      "credit": "USDA, USGS The National Map: Orthoimagery"
+    },
+    "chart": {
+      "ext": "png",
+      "credit": "NOAA Office of Coast Survey"
+    }
+  },
+  "fetched": "2026-10-17"
+}
