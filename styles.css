@@ -265,3 +265,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .cl-prob.top .bar span { background: var(--cyan); }
 .cl-prob .mono { text-align: right; }
 #cl-detail .cl-ais.bad { color: var(--amber); }
+
+/* ---------- places: the picked place stays highlighted ---------- */
+.places button[aria-pressed="true"] { border-color: var(--cyan); background: var(--panel-2); color: var(--ink); box-shadow: inset 3px 0 0 var(--cyan); }
+@media (forced-colors: active) { .places button[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -2px; } }

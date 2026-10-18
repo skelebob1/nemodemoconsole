@@ -133,6 +133,15 @@ window.OpsBasemaps = (function () {
     },
   });
 
+  // The place last clicked, in the hub or on the map, stays highlighted in both
+  // until another place is picked or empty map is clicked.
+  let picked = null;
+  function pick(i) {
+    picked = i;
+    document.querySelectorAll("#place-list [data-place]").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.place) === i)));
+    Ops.map.redraw();
+  }
+
   Ops.register({
     id: "places", parent: "basemap", no: 1.1, name: "Place names", toggle: true, on: true,
     hub(el, Ops) {
@@ -140,7 +149,7 @@ window.OpsBasemaps = (function () {
       el.innerHTML = `
         <h2>Places</h2>
         <div class="checks"><label><input type="checkbox" id="places-all"> Show all places</label></div>
-        <div class="places" id="place-list">${PLACES.map((p, i) => `<button type="button" data-place="${i}">${p.name}</button>`).join("")}</div>`;
+        <div class="places" id="place-list">${PLACES.map((p, i) => `<button type="button" data-place="${i}" aria-pressed="false">${p.name}</button>`).join("")}</div>`;
       const list = el.querySelector("#place-list");
       const box = el.querySelector("#places-all");
       // One switch for the list and the map marks, kept in step with the layer checkbox.
@@ -161,6 +170,7 @@ window.OpsBasemaps = (function () {
         const b = e.target.closest("[data-place]");
         if (!b) return;
         const p = PLACES[b.dataset.place];
+        pick(Number(b.dataset.place));
         if (p.basemap && Ops.map.state.basemap !== p.basemap) document.querySelector(`[data-basemap="${p.basemap}"]`).click();
         if (p.box) Ops.map.fitBox(p.box); else Ops.map.flyTo(p.lat, p.lon, p.z);
       });
@@ -169,13 +179,44 @@ window.OpsBasemaps = (function () {
     draw(ctx, map) {
       ctx.font = "500 11px system-ui, Segoe UI, sans-serif";
       ctx.textBaseline = "middle";
-      PLACES.forEach((p) => {
-        if (p.box) return;
+      PLACES.forEach((p, i) => {
+        if (p.box || i === picked) return;
         const [x, y] = map.project(p.lat, p.lon);
         ctx.fillStyle = "#3fc1d9"; ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
         ctx.lineWidth = 3; ctx.strokeStyle = "rgba(4,8,12,0.85)"; ctx.strokeText(p.name, x + 7, y);
         ctx.fillStyle = "#dbe5ee"; ctx.fillText(p.name, x + 7, y);
       });
+      if (picked == null) return;
+      // The highlighted place, drawn last so it sits on top: an outline for the
+      // two area places, a ring and a filled label for the rest.
+      const p = PLACES[picked];
+      ctx.strokeStyle = "#3fc1d9"; ctx.lineWidth = 2;
+      if (p.box) {
+        const [x0, y0] = map.project(p.box[3], p.box[0]), [x1, y1] = map.project(p.box[1], p.box[2]);
+        ctx.setLineDash([6, 4]); ctx.strokeRect(x0, y0, x1 - x0, y1 - y0); ctx.setLineDash([]);
+        return;
+      }
+      const [x, y] = map.project(p.lat, p.lon);
+      ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "#3fc1d9"; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.font = "600 12px system-ui, Segoe UI, sans-serif";
+      const w = ctx.measureText(p.name).width;
+      ctx.fillStyle = "#3fc1d9"; ctx.fillRect(x + 14, y - 10, w + 12, 20);
+      ctx.fillStyle = "#06090d"; ctx.fillText(p.name, x + 20, y + 0.5);
+    },
+    click(e, Ops) {
+      // A place's dot or its label picks it; empty map clears the highlight.
+      const ctx = document.createElement("canvas").getContext("2d");
+      ctx.font = "500 11px system-ui, Segoe UI, sans-serif";
+      const hit = PLACES.findIndex((p) => {
+        if (p.box) return false;
+        const [x, y] = Ops.map.project(p.lat, p.lon);
+        return Math.hypot(e.px - x, e.py - y) < 10 ||
+          (e.px >= x + 5 && e.px <= x + 9 + ctx.measureText(p.name).width + 14 && Math.abs(e.py - y) <= 10);
+      });
+      if (hit >= 0) { pick(hit); return true; }
+      if (picked != null) pick(null);
+      return false;
     },
   });
 })();
