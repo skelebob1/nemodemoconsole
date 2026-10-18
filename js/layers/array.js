@@ -104,7 +104,7 @@
       else b.removeAttribute("aria-current");
     });
     const cls = t >= c.classFrom ? "small craft, 19%" : "unclassified";   // matches the run's narration at classFrom
-    const range = rep.reportedRange == null ? "range not yet" : `${rep.reportedRange.toFixed(0)} m`;
+    const range = rep.fix ? where(rep.fix, rep) : "position not yet";   // a map position, not the test rig's few-metre range
     $("#array-readout").innerHTML = t < c.firstHeard
       ? `<h3>${esc(SITE.name)}</h3><p>Listening. ${esc(scenario.place)}. Gate closed.</p><p>${esc(sum.nReceivers)} microphones, ${esc(sum.domain)} domain, ${esc(sum.signal)} source.</p>`
       : `<h3>TRK-01 · tier ${tier(t)}</h3>
@@ -231,7 +231,7 @@
 
   function seek(t) {
     app.t = Math.max(0, Math.min(scenario.duration, t));
-    if (app.decision && app.t < app.decision.t) app.decision = null;
+    if (app.decision && app.t <= app.decision.t) app.decision = null;   // jumping back to Decide asks again
     app.lastK = -1;
     paint();
     if (window.Ops.map) Ops.map.redraw();
