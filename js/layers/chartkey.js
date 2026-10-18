@@ -57,12 +57,22 @@
         <div class="key-actions"><button type="button" data-all="1">Show all</button><button type="button" data-all="0">Hide all</button></div>
         <p class="note">NOAA chart data, ${ENC.fetched}. Depths in metres. Not for navigation.</p>`;
       const sync = () => el.querySelectorAll("[data-key]").forEach((cb) => { cb.checked = on[cb.dataset.key]; });
+      // The layer starts off, so switching a kind on also switches the layer on;
+      // otherwise the key would appear to do nothing.
+      const layerOn = () => {
+        if (layer.on) return;
+        layer.on = true; Ops.store.set("layer.chartkey", true);
+        const box = document.querySelector('input[data-layer="chartkey"]'); if (box) box.checked = true;
+      };
       el.addEventListener("change", (e) => {
         const cb = e.target.closest("[data-key]"); if (!cb) return;
-        on[cb.dataset.key] = cb.checked; Ops.store.set(`chartkey.${cb.dataset.key}`, cb.checked); Ops.map.redraw();
+        on[cb.dataset.key] = cb.checked; Ops.store.set(`chartkey.${cb.dataset.key}`, cb.checked);
+        if (cb.checked) layerOn();
+        Ops.map.redraw();
       });
       el.querySelectorAll("[data-all]").forEach((b) => b.addEventListener("click", () => {
         cats.forEach((c) => { on[c.key] = b.dataset.all === "1"; Ops.store.set(`chartkey.${c.key}`, on[c.key]); });
+        if (b.dataset.all === "1") layerOn();
         sync(); Ops.map.redraw();
       }));
     },
