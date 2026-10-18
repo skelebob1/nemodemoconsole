@@ -1,0 +1,35 @@
+/* Contact card and hover tip on the map (js/layers/inspect.js). Kept in its own
+   file so it does not collide with edits to styles.css. */
+
+.ic-card {
+  position: absolute; left: 0; top: 0; z-index: 30; width: 260px;
+  background: rgba(10, 16, 22, 0.96); border: 1px solid #2a3a4a; border-radius: 3px;
+  padding: 10px 12px 12px; color: #dbe5ee; font-size: 12px; line-height: 1.35;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); pointer-events: auto;
+}
+.ic-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.ic-head strong { font-size: 13px; font-weight: 700; }
+.ic-x { background: none; border: 0; color: #93a5b5; font-size: 18px; line-height: 1; padding: 0 2px; cursor: pointer; }
+.ic-x:hover { color: #fff; }
+.ic-flags { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+.ic-flag { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 1px 6px; border-radius: 2px; border: 1px solid #5a6b7b; color: #93a5b5; }
+.ic-flag.warn { border-color: #f2a93b; color: #f2a93b; }
+.ic-flag.bad { border-color: #ff5a4f; color: #ff5a4f; }
+.ic-card dl { display: grid; grid-template-columns: 72px 1fr; gap: 4px 10px; margin: 10px 0 0; }
+.ic-card dt { color: #5a6b7b; }
+.ic-card dd { margin: 0; }
+.ic-card dd small { display: block; color: #5a6b7b; font-size: 11px; }
+.ic-card .mono { font-family: ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.ic-actions { display: flex; gap: 6px; margin-top: 10px; }
+.ic-actions button { flex: 1; background: transparent; border: 1px solid #2a3a4a; border-radius: 3px; padding: 5px 8px; color: #93a5b5; cursor: pointer; font: inherit; }
+.ic-actions button:hover { border-color: #5a6b7b; color: #dbe5ee; }
+
+.ic-tip {
+  position: absolute; left: 0; top: 0; z-index: 31; pointer-events: none; white-space: nowrap;
+  background: rgba(10, 16, 22, 0.92); border: 1px solid #2a3a4a; border-radius: 2px;
+  padding: 3px 7px; font-size: 11px; color: #dbe5ee;
+}
+
+@keyframes ic-flash { from { box-shadow: 0 0 0 2px #f2a93b; } to { box-shadow: 0 0 0 2px transparent; } }
+.ic-flash { animation: ic-flash 1.2s ease-out; }
+@media (prefers-reduced-motion: reduce) { .ic-flash { animation: none; } }
