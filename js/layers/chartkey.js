@@ -41,7 +41,7 @@
 
   let on = null;
   const layer = {
-    id: "chartkey", no: 1.5, name: "Chart features", toggle: true, on: true,
+    id: "chartkey", no: 1.5, name: "Chart features", toggle: true, on: false,   // off by default: thousands of chart symbols bury the contacts
     hub(el, Ops) {
       on = Object.fromEntries(cats.map((c) => [c.key, Ops.store.get(`chartkey.${c.key}`, DEFAULT_ON[c.key] !== false)]));
       el.innerHTML = `

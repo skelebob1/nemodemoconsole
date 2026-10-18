@@ -103,7 +103,7 @@
       if (Number(b.dataset.t) === ch.t) b.setAttribute("aria-current", "true");
       else b.removeAttribute("aria-current");
     });
-    const cls = t >= c.classFrom ? "quadcopter, 19%" : "unclassified";
+    const cls = t >= c.classFrom ? "small craft, 19%" : "unclassified";   // matches the run's narration at classFrom
     const range = rep.reportedRange == null ? "range not yet" : `${rep.reportedRange.toFixed(0)} m`;
     $("#array-readout").innerHTML = t < c.firstHeard
       ? `<h3>${esc(SITE.name)}</h3><p>Listening. ${esc(scenario.place)}. Gate closed.</p><p>${esc(sum.nReceivers)} microphones, ${esc(sum.domain)} domain, ${esc(sum.signal)} source.</p>`
@@ -131,6 +131,101 @@
       cap.hidden = layer && layer.on === false;
       cap.classList.toggle("alert", tier(t) >= 4);
       cap.innerHTML = `<span class="ch">${ch.n} · ${esc(ch.title)}</span>${esc(narration(t))}`;
+    }
+    paintAlert(t, rep);
+  }
+
+  // Alert level on the map, driven by the replay tier: GREEN while the array is
+  // quiet, AMBER while TRK-01 is heard or tracked, RED once it is unexplained in
+  // the sector. At RED the card lists the recommended crisis actions. They are
+  // recommendations only; the officer's choice is made in the hub.
+  // After the officer decides, the card moves to an outcome. For hold and
+  // notify, the response steps complete one by one as the replay runs on (at
+  // `at` seconds after the decision). All simulated.
+  const LEVELS = {
+    green: { level: "green", name: "GREEN", why: "Harbour normal. Array listening." },
+    amber2: { level: "amber", name: "AMBER", why: "Contact detected. Not yet tracked." },
+    amber3: { level: "amber", name: "AMBER", why: "TRK-01 tracked. Unidentified." },
+    red: { level: "red", name: "RED", why: "TRK-01 unexplained inside the array sector." },
+    "out-hold": { level: "amber", name: "AMBER", why: "Western approach held. Response under way.", response: true },
+    "out-notify": { level: "amber", name: "AMBER", why: "Site security notified. Response under way.", response: true },
+    "out-known": { level: "green", name: "GREEN", why: "TRK-01 logged as explained. Recommendations withdrawn." },
+    "out-monitor": { level: "red", name: "RED", why: "TRK-01 still unexplained. The console asks again in 2 min." },
+  };
+  const RESPONSE = [
+    { at: 0, text: "Main Channel closed to inbound and outbound traffic" },
+    { at: 3, text: "Mine-countermeasures team dispatched to TRK-01's last position" },
+    { at: 6, text: "Captain of the Port and Port Police notified" },
+    { at: 10, text: "Mine-countermeasures team on scene, searching" },
+  ];
+  // A map position reads better in a harbour than the test rig's few-metre range.
+  function where(fix, rep) {
+    if (!fix) return `bearing ${rep.reportedBrg.toFixed(0)}°`;
+    const [lat, lon] = toLl(fix.x, fix.y);
+    return `${lat.toFixed(4)}° N, ${Math.abs(lon).toFixed(4)}° W`;
+  }
+  function paintAlert(t, rep) {
+    const card = $("#alert-card");
+    if (!card) return;
+    card.hidden = layer && layer.on === false;
+    const tr = tier(t);
+    const key = app.decision ? "out-" + app.decision.key
+      : tr >= 4 ? "red" : tr === 3 ? "amber3" : tr === 2 ? "amber2" : "green";
+    const L = LEVELS[key] || LEVELS.red;
+    const recs = card.querySelector(".alert-recs");
+    if (card.dataset.key !== key) {
+      const changed = !!card.dataset.key;
+      card.dataset.key = key;
+      card.dataset.level = L.level;
+      card.querySelector(".lvl").textContent = L.name;
+      card.querySelector(".why").textContent = L.why;
+      recs.hidden = !(key === "red" || L.response);
+      recs.querySelector("h3").textContent = L.response ? "Response" : "Recommended actions";
+      recs.querySelector("ol").innerHTML = L.response
+        ? RESPONSE.map((s) => `<li data-at="${s.at}"><span class="st" aria-hidden="true"></span>${esc(s.text)}<span class="when mono"></span></li>`).join("")
+        : `<li>Close the Main Channel to inbound and outbound traffic.</li>
+           <li>Dispatch the mine-countermeasures team to TRK-01's last position, <span class="rec-fix mono"></span>.</li>
+           <li>Notify the Captain of the Port and Port Police.</li>`;
+      recs.querySelector("ol").classList.toggle("steps", !!L.response);
+      if (changed) { card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash"); }
+    }
+    if (key === "red") {
+      recs.querySelector(".rec-fix").textContent = where(rep.fix, rep);
+      card.querySelector(".alert-foot").textContent = "Recommended. The officer decides in the hub.";
+    } else if (L.response) {
+      const dt = t - app.decision.t;
+      recs.querySelectorAll("li").forEach((li) => {
+        const done = dt >= Number(li.dataset.at);
+        li.classList.toggle("done", done);
+        li.querySelector(".when").textContent = done ? ` ${fmt(app.decision.t + Number(li.dataset.at))}` : " pending";
+      });
+      card.querySelector(".alert-foot").textContent = `Officer chose: ${app.decision.label}, ${fmt(app.decision.t)}. Search area ${where(app.decision.fix, rep)}.`;
+    }
+  }
+
+  // Map marks for the response: the Main Channel closure and the search area.
+  const CHANNEL = { lat: 33.7366, lon: -118.2744 };   // "Main Channel, San Pedro" place
+  function drawResponse(ctx, map) {
+    if (!app.decision || !LEVELS["out-" + app.decision.key]?.response) return;
+    const dt = app.t - app.decision.t;
+    const chip = (x, y, text, col) => {
+      ctx.font = "700 11px ui-monospace, Consolas, monospace";
+      const w = ctx.measureText(text).width + 12;
+      ctx.fillStyle = "rgba(6,9,13,0.9)"; ctx.fillRect(x - w / 2, y - 10, w, 20);
+      ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.strokeRect(x - w / 2 + 0.5, y - 9.5, w - 1, 19);
+      ctx.fillStyle = col; ctx.textAlign = "center"; ctx.fillText(text, x, y + 1); ctx.textAlign = "left";
+    };
+    if (dt >= 0) {
+      const [x, y] = map.project(CHANNEL.lat, CHANNEL.lon);
+      chip(x, y - 22, "MAIN CHANNEL CLOSED", "#ff5a4f");
+    }
+    if (dt >= 3 && app.decision.fix) {
+      const [lat, lon] = toLl(app.decision.fix.x, app.decision.fix.y);
+      const [x, y] = map.project(lat, lon);
+      const r = Math.max(18, 25 / map.metresPerPx());
+      ctx.strokeStyle = "#3fc1d9"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      chip(x, y + r + 14, dt >= 10 ? "MCM SEARCHING" : "MCM EN ROUTE", "#3fc1d9");
     }
   }
 
@@ -183,13 +278,14 @@
         const b = e.target.closest("[data-decide]");
         if (!b || app.decision || !scenario || app.t < scenario.decisionAt) return;
         const d = scenario.modes.site.decisions.find((x) => x.key === b.dataset.decide);
-        app.decision = { key: d.key, label: d.label, t: app.t };
+        app.decision = { key: d.key, label: d.label, t: app.t, fix: report(app.t).fix };
         app.playing = true;
         paint();
       });
     },
     draw(ctx, map) {
       if (!scenario) return;
+      drawResponse(ctx, map);
       const zoom = map.state.zoom;
       const [ax, ay] = map.project(SITE.lat, SITE.lon);
       const rep = report(app.t);
@@ -287,13 +383,35 @@
     cap.id = "array-cap";
     cap.className = "array-cap";
     document.querySelector(".mapwrap").appendChild(cap);
+    const card = document.createElement("div");
+    card.id = "alert-card";
+    card.className = "alert-card";
+    card.innerHTML = `
+      <div class="alert-level" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span class="lbl">Alert</span><span class="lvl"></span></div>
+      <p class="why"></p>
+      <div class="alert-recs" hidden>
+        <h3>Recommended actions</h3>
+        <ol>
+          <li>Close the Main Channel to inbound and outbound traffic.</li>
+          <li>Dispatch the mine-countermeasures team to TRK-01's last fix, <span class="rec-fix mono"></span>.</li>
+          <li>Notify the Captain of the Port and Port Police.</li>
+        </ol>
+        <p class="alert-foot"></p>
+      </div>`;
+    document.querySelector(".mapwrap").appendChild(card);
     paint();
     Ops.map.redraw();
   }
 
   fetch("data/array-scenario.json")
     .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
-    .then((data) => { scenario = data; if (document.getElementById("array-readout")) arm(); })
+    .then((data) => {
+      scenario = data;
+      // The exported run labels this choice for a drone; in the harbour story it is a vessel.
+      const known = scenario.modes.site.decisions.find((d) => d.key === "known");
+      if (known) known.label = "Log as authorized traffic";
+      if (document.getElementById("array-readout")) arm();
+    })
     .catch(() => {
       const el = document.getElementById("array-readout");
       if (el) el.textContent = "The array scenario did not load. Run examples/export_nemo_scenario.py in 9m_Test.";
@@ -307,6 +425,8 @@
     last = now;
     const cap = document.getElementById("array-cap");
     if (cap) cap.hidden = !scenario || layer.on === false;
+    const card = document.getElementById("alert-card");
+    if (card) card.hidden = !scenario || layer.on === false;
     if (scenario && app.playing && layer.on !== false) {
       let t = app.t + dt * app.speed;
       const gate = scenario.decisionAt;

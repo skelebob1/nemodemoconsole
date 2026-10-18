@@ -12,6 +12,7 @@
   --cyan: #3fc1d9;
   --amber: #f2a93b;
   --red: #ff5a4f;
+  --green: #4cc38a;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   --overlay: rgba(6, 9, 13, 0.86);   /* every floating chip on the map */
   --z-chrome: 2;
@@ -34,7 +35,7 @@ h2 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: u
 :focus-visible { outline: 2px solid var(--cyan); outline-offset: 1px; }
 
 /* ---------- hub ---------- */
-.hub { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+.hub { position: relative; /* contains the hidden .sr labels; without it they stretch the page and a click scrolls the map away */ background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
 .hub-head { padding: 16px 16px 12px; border-bottom: 1px solid var(--line); }
 .brand { display: flex; align-items: baseline; gap: 8px; }
 .wordmark { font-weight: 800; letter-spacing: 0.24em; color: var(--cyan); font-size: 17px; }
@@ -89,10 +90,41 @@ h2.gap { margin-top: 16px; }
 .array-choices button:focus-visible { border-color: var(--red); outline: none; }
 #array-show { margin-top: 8px; background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: 6px 10px; color: var(--ink-2); }
 #array-show:focus-visible { border-color: var(--cyan); color: var(--ink); }
-.array-cap { position: absolute; left: 12px; top: 12px; max-width: min(520px, calc(100% - 72px)); background: var(--overlay); border: 1px solid var(--line); border-left: 3px solid var(--cyan); border-radius: 3px; padding: 8px 12px; font-size: 14px; line-height: 1.35; text-wrap: pretty; z-index: var(--z-chrome); pointer-events: none; }
+.array-cap { position: absolute; left: 12px; top: 12px; max-width: min(520px, calc(100% - 384px)); background: var(--overlay); border: 1px solid var(--line); border-left: 3px solid var(--cyan); border-radius: 3px; padding: 8px 12px; font-size: 14px; line-height: 1.35; text-wrap: pretty; z-index: var(--z-chrome); pointer-events: none; }
 .array-cap.alert { border-left-color: var(--red); }
 .array-cap .ch { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--cyan); font-size: 12px; margin-right: 8px; }
 .array-cap.alert .ch { color: var(--red); }
+
+/* Alert level card (array.js). Colour is never the only cue: the level is
+   always written out, and RED adds the actions list. */
+.alert-card { --lv: var(--green); position: absolute; top: 12px; right: 60px; width: 300px; background: var(--overlay); border: 1px solid var(--line); border-top: 3px solid var(--lv); border-radius: 3px; padding: 10px 12px; z-index: var(--z-chrome); font-size: 13px; line-height: 1.4; }
+.alert-card[data-level="amber"] { --lv: var(--amber); }
+.alert-card[data-level="red"] { --lv: var(--red); border-color: color-mix(in srgb, var(--red) 45%, var(--line)); border-top-color: var(--red); }
+.alert-level { display: flex; align-items: center; gap: 8px; }
+.alert-level .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--lv); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lv) 25%, transparent); }
+.alert-level .lbl { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.alert-level .lvl { font-family: var(--mono); font-weight: 700; font-size: 16px; letter-spacing: 0.06em; color: var(--lv); }
+.alert-card .why { margin: 4px 0 0; color: var(--ink); }
+.alert-recs { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.alert-recs h3 { margin: 0 0 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); }
+.alert-recs ol { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.alert-recs .rec-fix { color: var(--ink); white-space: nowrap; }
+.alert-foot { margin: 8px 0 0; font-size: 12px; color: var(--ink-2); }
+.alert-card:not([data-level="red"]) .alert-recs h3 { color: var(--ink-2); }
+.alert-recs ol.steps { list-style: none; padding-left: 0; }
+.alert-recs ol.steps li { display: grid; grid-template-columns: 16px 1fr; column-gap: 6px; color: var(--ink-3); }
+.alert-recs ol.steps li .when { grid-column: 2; font-size: 11px; color: var(--ink-3); }
+.alert-recs ol.steps .st { width: 10px; height: 10px; margin-top: 4px; border: 1.5px solid var(--ink-3); border-radius: 50%; }
+.alert-recs ol.steps li.done { color: var(--ink); }
+.alert-recs ol.steps li.done .st { border-color: var(--green); background: var(--green); }
+.alert-recs ol.steps li.done .when { color: var(--green); }
+@media (prefers-reduced-motion: no-preference) { .alert-recs ol.steps li { transition: color 300ms ease-out; } }
+@media (prefers-reduced-motion: no-preference) {
+  .alert-card.flash { animation: alert-flash 900ms ease-out; }
+  .alert-card[data-level="red"] .dot { animation: alert-pulse 1.6s ease-in-out infinite; }
+}
+@keyframes alert-flash { from { background: color-mix(in srgb, var(--lv) 35%, var(--overlay)); } to { background: var(--overlay); } }
+@keyframes alert-pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--lv) 10%, transparent); } }
 
 /* ---------- map ---------- */
 .mapwrap { position: relative; min-width: 0; min-height: 0; }

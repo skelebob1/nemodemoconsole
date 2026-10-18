@@ -39,7 +39,8 @@ window.Ops = (function () {
     buildLayerList();
     layers.forEach((l) => {
       if (l.toggle && l.on === undefined) l.on = true;
-      if (l.toggle) l.on = store.get("layer." + l.id, l.on);
+      // ?demo=1 ignores remembered switches, so a recording always starts clean.
+      if (l.toggle && !q.has("demo")) l.on = store.get("layer." + l.id, l.on);
       if (l.hub) {
         const sec = document.createElement("section");
         sec.className = "hub-sec"; sec.dataset.layer = l.id;
